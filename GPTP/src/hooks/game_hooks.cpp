@@ -22,23 +22,26 @@ bool nextFrame() {
     if (*elapsedTimeFrames == 0) {
       //Write your code here
       scbw::printText("SC:X v0.01");
-	      //KYSXD Add 2 workers and a Guardian IF it's not an UMS map
+	      //KYSXD Add 1 workers
 	  if (!(*GAME_TYPE == 10)) {
+		  u16 initialworkeramount = 12;
 		  for (CUnit* townHall = *firstVisibleUnit; townHall; townHall = townHall->link.next) {
 			  if (townHall->mainOrderId != OrderId::Die) {
 				  u16 workerUnitId = UnitId::None;
-				  if (townHall->id == UnitId::TerranCommandCenter) {
-					  workerUnitId = UnitId::TerranSCV;
+				  if (townHall->id == UnitId::command_center) {
+					  workerUnitId = UnitId::scv;
 				  }
-				  else if (townHall->id == UnitId::ZergHatchery) {
-					  workerUnitId = UnitId::ZergDrone;
+				  else if (townHall->id == UnitId::hatchery) {
+					  workerUnitId = UnitId::drone;
 				  }
-				  else if (townHall->id == UnitId::ProtossNexus) {
-					  workerUnitId = UnitId::ProtossProbe;
+				  else if (townHall->id == UnitId::nexus) {
+					  workerUnitId = UnitId::probe;
 				  }
 				  else
 					  continue;
-				  scbw::createUnitAtPos(workerUnitId, townHall->playerId, townHall->getX(), townHall->getY());
+				  for (int i=0; i<(initialworkeramount-4); i++) {
+					  scbw::createUnitAtPos(workerUnitId, townHall->playerId, townHall->getX(), townHall->getY());
+				  }
 			  }
 		  }
 	  }
