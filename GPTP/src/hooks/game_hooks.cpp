@@ -7,6 +7,8 @@
 #include <SCBW/ExtendSightLimit.h>
 #include "psi_field.h"
 #include <cstdio>
+#include <AI/ai_common.h>
+#include "rally_point.h"
 
 
 namespace hooks {
@@ -22,6 +24,35 @@ bool nextFrame() {
     if (*elapsedTimeFrames == 0) {
       //Write your code here
       scbw::printText(PLUGIN_NAME ": Hello, world!");
+	  for (CUnit *townHall = *firstVisibleUnit; townHall; townHall = townHall->link.next) {
+		  CUnit *target = NULL;
+		  u16 range = townHall->getSightRange();
+		  if (townHall->id == UnitId::command_center
+			  || townHall->id == UnitId::hatchery
+			  || townHall->id == UnitId::nexus) {
+			  target = scbw::UnitFinder::getNearestTarget(townHall, [] (CUnit *tunit) -> bool {
+				  if (tunit->id == UnitId::mineral_field_1
+					  || tunit->id == UnitId::mineral_field_2
+					  || tunit->id == UnitId::mineral_field_3){
+					  return true;
+				  }
+				  else return false;
+			  }
+			  );
+			  if (target != NULL) {
+				  townHall->rally.pt.x = target->getX();
+				  townHall->rally.pt.y = target->getY();
+			  }
+			  for( CUnit *worker = *firstVisibleUnit; worker; worker = worker->link.next) {
+				  if((worker->id == UnitId::scv
+					  ||worker->id == UnitId::probe
+					  ||worker->id == UnitId::drone)
+					  && worker->playerId == townHall->playerId) {
+						  worker->orderTo(OrderId::Harvest1, target);
+				  }
+			  }
+		  }
+	  }
     }
 
     //Loop through all visible units in the game.
