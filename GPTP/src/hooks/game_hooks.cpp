@@ -59,8 +59,10 @@ bool nextFrame() {
 						  }
 						  );
 						  if (target != NULL) {
+							  townHall->rally.unit = target;
 							  townHall->rally.pt.x = target->getX();
 							  townHall->rally.pt.y = target->getY();
+							  townHall->moveTarget.unit = target;
 						  }
 						  for(CUnit *worker = *firstVisibleUnit; worker; worker = worker->link.next) {
 							  if((worker->id == workerUnitId)
