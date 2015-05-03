@@ -7,6 +7,8 @@
 #include <SCBW/ExtendSightLimit.h>
 #include "psi_field.h"
 #include <cstdio>
+#include <AI/ai_common.h>
+#include "rally_point.h"
 
 
 namespace hooks {
@@ -21,8 +23,8 @@ bool nextFrame() {
     //This block is executed once every game.
     if (*elapsedTimeFrames == 0) {
       //Write your code here
-      scbw::printText("SC:X v0.01");
-	      //KYSXD Add 1 workers
+      scbw::printText(PLUGIN_NAME);
+	      //KYSXD Add 12 workers
 	  if (!(*GAME_TYPE == 10)) {
 		  u16 initialworkeramount = 12;
 		  for (CUnit* townHall = *firstVisibleUnit; townHall; townHall = townHall->link.next) {
@@ -41,6 +43,31 @@ bool nextFrame() {
 					  continue;
 				  for (int i=0; i<(initialworkeramount-4); i++) {
 					  scbw::createUnitAtPos(workerUnitId, townHall->playerId, townHall->getX(), townHall->getY());
+				  }
+				  CUnit *target = NULL;
+				  u16 range = townHall->getSightRange();
+				  if (townHall->id == UnitId::command_center
+					  || townHall->id == UnitId::hatchery
+					  || townHall->id == UnitId::nexus) {
+						  target = scbw::UnitFinder::getNearestTarget(townHall, [] (CUnit *tunit) -> bool {
+							  if (tunit->id == UnitId::mineral_field_1
+								  || tunit->id == UnitId::mineral_field_2
+								  || tunit->id == UnitId::mineral_field_3){
+									  return true;
+							  }
+							  else return false;
+						  }
+						  );
+						  if (target != NULL) {
+							  townHall->rally.pt.x = target->getX();
+							  townHall->rally.pt.y = target->getY();
+						  }
+						  for(CUnit *worker = *firstVisibleUnit; worker; worker = worker->link.next) {
+							  if((worker->id == workerUnitId)
+								  && worker->playerId == townHall->playerId) {
+									  worker->orderTo(OrderId::Harvest1, target);
+							  }
+						  }
 				  }
 			  }
 		  }
