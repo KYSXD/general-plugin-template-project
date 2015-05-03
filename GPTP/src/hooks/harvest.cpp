@@ -5,6 +5,11 @@
 //Helper functions
 void updateMineralPatchImage(CUnit *mineralPatch);
 void setResourceAmountCarried(CUnit *worker, u8 amountCarried, u32 chunkImageId, bool isMineral);
+int min_amount = 5;
+int gas_amount = 4;
+int rmin_amount = 7;
+int rgas_amount = 6;
+int dep_amount = 0;
 
 //-------- Actual hooks --------//
 
@@ -13,32 +18,36 @@ namespace hooks {
 //Harvests minerals/gas from the @p resource and returns the amount that a
 //worker should carry.
 u8 harvestResourceFrom(CUnit *resource, bool isMineral) {
+	int harvest_amount = 0;
   //Default StarCraft behavior
-
-  if (resource->building.resource.resourceAmount < 8) {
-    if (isMineral) {
-      resource->remove();
-      return (u8) resource->building.resource.resourceAmount;
-    }
-    else {
-      resource->building.resource.resourceAmount = 0;
-      return 2;
-    }
-  }
-  else {
-    resource->building.resource.resourceAmount -= 8;
+	if (isMineral) {
+		harvest_amount = min_amount;
+	}
+	else {harvest_amount = gas_amount;
+	}
+	if (resource->building.resource.resourceAmount < harvest_amount) {
+		if (isMineral) {
+			resource->remove();
+			return (u8) resource->building.resource.resourceAmount;
+		}
+		else {
+			resource->building.resource.resourceAmount = 0;
+			return dep_amount;
+		}
+	}
+	else {
+		resource->building.resource.resourceAmount -= harvest_amount;
     
-    if (isMineral) {
-      if (resource->building.resource.resourceAmount > 0)
-        updateMineralPatchImage(resource);
-      else
-        resource->remove();
-    }
-    else if (resource->building.resource.resourceAmount < 8)
-      scbw::showErrorMessageWithSfx(resource->playerId, 875, 20); //Gas depleted message and sound
-    
-    return 8;
-  }
+		if (isMineral) {
+			if (resource->building.resource.resourceAmount > 0)
+				updateMineralPatchImage(resource);
+			else
+				resource->remove();
+		}
+		else if (resource->building.resource.resourceAmount < harvest_amount)
+			scbw::showErrorMessageWithSfx(resource->playerId, 875, 20); //Gas depleted message and sound
+		return harvest_amount;
+	}
 }
 
 //Transfers a set amount of resources from a resource patch to a worker.
@@ -62,7 +71,7 @@ void transferResourceToWorkerHook(CUnit *worker, CUnit *resource) {
     return;
 
   u8 resourceAmount = harvestResourceFrom(resource, isMineral);
-  if (resourceAmount < 8)
+  if (resourceAmount < min_amount)
     chunkImageId += 1;  //Use depleted (smaller) chunk image
 
   if (resourceAmount > 0) {
