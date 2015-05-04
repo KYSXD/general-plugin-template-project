@@ -40,6 +40,12 @@
 #include "hooks/interface/weapon_armor_tooltip.h"
 
 #include "AI/spellcasting.h"
+#include <direct.h>
+#include <urlmon.h>
+#include <shellapi.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "io.h"
 
 /// This function is called when the plugin is loaded into StarCraft.
 /// You can enable/disable each group of hooks by commenting them.
@@ -47,6 +53,18 @@
 ///    memoryPatch(address_to_patch, value_to_patch_with);
 
 BOOL WINAPI Plugin::InitializePlugin(IMPQDraftServer *lpMPQDraftServer) {
+
+	int msgboxID = MessageBox(NULL, "You are starting StarCraft:V\nDo you want to play in W-Mode?", PLUGIN_NAME , MB_YESNOCANCEL);
+	switch (msgboxID) {
+	case IDYES:
+		HINSTANCE hDll;
+		hDll =LoadLibrary("./WMODE.dll");
+		hDll =LoadLibrary("./WMODE_FIX.dll");
+		break;
+	case IDCANCEL:
+		exit(0);
+	}
+
   //StarCraft.exe version check
   char exePath[300];
   const DWORD pathLen = GetModuleFileName(NULL, exePath, sizeof(exePath));
