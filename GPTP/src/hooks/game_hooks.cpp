@@ -116,7 +116,6 @@ bool nextFrame() {
 				sprintf_s(mineralCount, "\x04 / %d \x01", minerals*3);
 				std::string message = std::string(workerCount)+std::string(mineralCount);
 				graphics::drawText(unit->getX()-50, unit->getY()-60, message, graphics::FONT_MEDIUM, graphics::ON_MAP);
-				graphics::drawCircle(unit->getX(), unit->getY(), distance, graphics::BLUE, graphics::ON_MAP);
 		}
     }
 
