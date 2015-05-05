@@ -4,7 +4,7 @@
 
 #ifdef _DEBUG
 //If this macro is not defined, GPTP::logger will be disabled.
-#define GPTP_LOGGING_ENABLED
+//#define GPTP_LOGGING_ENABLED
 #endif
 
 #include <fstream>
