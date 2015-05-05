@@ -81,31 +81,67 @@ bool nextFrame() {
     //Loop through all visible units in the game.
     for (CUnit *unit = *firstVisibleUnit; unit; unit = unit->link.next) {
       //Write your code here
-		if ((unit->id == UnitId::nexus
-			|| unit->id == UnitId::command_center
-			|| unit->id == UnitId::hatchery
-			|| unit->id == UnitId::hive
-			|| unit->id == UnitId::lair)
+		if (units_dat::BaseProperty[unit->id] & UnitProperty::ResourceDepot
 			&& unit->playerId == *LOCAL_HUMAN_ID) {
-				int distance = 320;
+				int distance = unit->getSightRange()*32;
 				int workers = 0;
 				int minerals = 0;
+				int gworkers = 0;
 				for (CUnit *mineral = *firstVisibleUnit; mineral; mineral = mineral->link.next) {
-					if ((mineral->id == UnitId::mineral_field_1
-						|| mineral->id == UnitId::mineral_field_2
-						|| mineral->id == UnitId::mineral_field_3)
+					if ((176 <= mineral->id && mineral->id <= 178)
 						&& scbw::getDistanceFast(unit->getX(), unit->getY(), mineral->getX(), mineral->getY()) < distance) {
 							++minerals;
+					}
+				}
+				for (CUnit *gas = *firstVisibleUnit; gas; gas = gas->link.next) {
+					if ((gas->id == UnitId::refinery || gas->id == UnitId::assimilator || gas->id == UnitId::extractor)
+						&& gas->status & UnitStatus::Completed
+						&& scbw::getDistanceFast(unit->getX(), unit->getY(), gas->getX(), gas->getY()) < distance) {
+							for (CUnit *gworker = firstPlayerUnit->unit[unit->playerId]; gworker; gworker = gworker->player_link.next) {
+								if (gworker->moveTarget.unit != NULL) {
+									if (gworker->playerId == *LOCAL_HUMAN_ID
+										&& units_dat::BaseProperty[gworker->id] & UnitProperty::Worker
+										&& (gworker->mainOrderId == OrderId::HarvestGas1
+										|| gworker->mainOrderId == OrderId::HarvestGas2
+										|| gworker->mainOrderId == OrderId::HarvestGas3
+										|| gworker->mainOrderId == OrderId::Harvest1
+										|| gworker->mainOrderId == OrderId::Harvest2
+										|| gworker->mainOrderId == OrderId::Harvest3
+										|| gworker->mainOrderId == OrderId::Harvest4
+										|| gworker->mainOrderId == OrderId::Harvest5
+										|| gworker->mainOrderId == OrderId::ReturnGas
+										|| gworker->mainOrderId == OrderId::ResetCollision2)
+										&& (gworker->moveTarget.unit == unit
+										|| gworker->moveTarget.unit == gas)) {
+											++gworkers;
+									}
+								}
+							}
+							char gasCount[64];
+							char gasWorkers[64];
+							sprintf_s(gasCount, "\x04 Workers: %d \x01", gworkers);
+							sprintf_s(gasWorkers, "\x04 / %d \x01", 3);
+							std::string gmessage = std::string(gasCount)+std::string(gasWorkers);
+							graphics::drawText(gas->getX()-50, gas->getY()-60, gmessage, graphics::FONT_MEDIUM, graphics::ON_MAP);
 					}
 				}
 				for (CUnit *worker = *firstVisibleUnit; worker; worker = worker->link.next) {
 					if (worker->moveTarget.unit != NULL) {
 						if (worker->playerId == *LOCAL_HUMAN_ID
 							&& units_dat::BaseProperty[worker->id] & UnitProperty::Worker
+							&& (worker->mainOrderId == OrderId::Harvest1
+							|| worker->mainOrderId == OrderId::Harvest2
+							|| worker->mainOrderId == OrderId::Harvest3
+							|| worker->mainOrderId == OrderId::Harvest4
+							|| worker->mainOrderId == OrderId::Harvest5
+							|| worker->mainOrderId == OrderId::MoveToMinerals
+							|| worker->mainOrderId == OrderId::MiningMinerals
+							|| worker->mainOrderId == OrderId::ReturnMinerals
+							|| worker->mainOrderId == OrderId::ResetCollision2
+							|| worker->mainOrderId == OrderId::HarvestMinerals2)
 							&& (worker->moveTarget.unit == unit
-							|| ((worker->moveTarget.unit->id == UnitId::mineral_field_1
-							|| worker->moveTarget.unit->id == UnitId::mineral_field_2
-							|| worker->moveTarget.unit->id == UnitId::mineral_field_3) && scbw::getDistanceFast(unit->getX(), unit->getY(), worker->moveTarget.unit->getX(), worker->moveTarget.unit->getY()) < distance))) {
+							|| ((176 <= worker->moveTarget.unit->id && worker->moveTarget.unit->id <= 178)
+							&& scbw::getDistanceFast(unit->getX(), unit->getY(), worker->moveTarget.unit->getX(), worker->moveTarget.unit->getY()) < distance))) {
 								++workers;
 						}
 					}
