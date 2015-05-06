@@ -3,6 +3,7 @@
 #include "unit_speed.h"
 #include "../SCBW/enumerations.h"
 #include "../SCBW/scbwdata.h"
+#include <SCBW/api.h>
 
 namespace hooks {
 
@@ -15,16 +16,26 @@ u32 getModifiedUnitSpeedHook(const CUnit* unit, u32 baseSpeed) {
 	int speedModifier = (unit->stimTimer ? 1 : 0) - (unit->ensnareTimer ? 1 : 0)
                       + (unit->status & UnitStatus::SpeedUpgrade ? 1 : 0);
 	if (speedModifier > 0) {
-		if (unit->id == UnitId::scout || unit->id == UnitId::Hero_Mojo || unit->id == UnitId::Hero_Artanis)
-      speed = 1707;
+		if (unit->id == UnitId::scout || unit->id == UnitId::Hero_Mojo || unit->id == UnitId::Hero_Artanis) {
+			speed = 1707;
+		}
 		else {
 			speed += speed >> 1;
 			if (speed < 853)
-        speed = 853;
+				speed = 853;
 		}
 	}
-	else if (speedModifier < 0)
+	else if (speedModifier < 0) {
 		speed >>= 1;
+	}
+	ActiveTile actTile = scbw::getActiveTileAt(unit->getX(), unit->getY());
+	if (unit->getRace() == RaceId::Zerg
+		&& !(unit->status & UnitStatus::InAir)
+		&& actTile.hasCreep){
+			if (unit->id != UnitId::drone) {
+				speed += (speed*30)/100;
+			}
+	}
 	return speed;
 }
 
